@@ -1,7 +1,6 @@
 🌱 EcoPickup — AI Waste Pickup Booking Assistant
 
 An end-to-end AI-powered application for waste pickup scheduling, PDF-based document question answering (RAG), voice-enabled chatbot, and a complete admin dashboard.
-Built as part of the Neostats Round-2 AI Engineer assignment.
 
 📌 Overview
 
@@ -267,3 +266,4 @@ Supabase cloud database
 Nandana Biju
 MSc AI & ML
 Christ University
+
