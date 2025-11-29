@@ -1,47 +1,48 @@
 # app/tools.py
 
-from db.database import SessionLocal
-from db.models import Customer, Booking
-from sqlalchemy.exc import SQLAlchemyError
-import datetime
 import streamlit as st
 from groq import Groq
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+
+from db.database import SessionLocal
+from db.models import Customer, Booking
+from sqlalchemy.exc import SQLAlchemyError
+import datetime
 import requests
 
+from app.rag_pipeline import add_documents_from_uploaded_files, rag_answer
+from gtts import gTTS
+import base64
 
-# ------------------------------------------------------------
-# SAVE BOOKING TO DATABASE
-# ------------------------------------------------------------
-def save_booking_to_db(booking_data):
+# ------------------------------
+# Save booking to DB
+# ------------------------------
+def save_booking_to_db(data):
     db = SessionLocal()
-
     try:
-        # Check if customer exists
-        existing_customer = (
-            db.query(Customer).filter(Customer.email == booking_data["email"]).first()
+        customer = (
+            db.query(Customer)
+            .filter(Customer.email == data["email"])
+            .first()
         )
 
-        if existing_customer:
-            customer = existing_customer
-        else:
+        if not customer:
             customer = Customer(
-                name=booking_data["name"],
-                email=booking_data["email"],
-                phone=booking_data["phone"],
+                name=data["name"],
+                email=data["email"],
+                phone=data["phone"],
             )
             db.add(customer)
             db.commit()
             db.refresh(customer)
 
-        # New booking entry
         booking = Booking(
             customer_id=customer.customer_id,
-            booking_type=booking_data["pickup_type"],
-            date=booking_data["date"],
-            time=booking_data["time"],
+            booking_type=data["pickup_type"],
+            date=data["date"],
+            time=data["time"],
             status="confirmed",
             created_at=datetime.datetime.utcnow(),
         )
@@ -60,9 +61,9 @@ def save_booking_to_db(booking_data):
         db.close()
 
 
-# ------------------------------------------------------------
-# SEND EMAIL CONFIRMATION (SMTP)
-# ------------------------------------------------------------
+# ------------------------------
+# Email sending (SMTP)
+# ------------------------------
 def send_confirmation_email(to_email, subject, body):
     try:
         smtp_host = st.secrets["smtp"]["host"]
@@ -70,16 +71,16 @@ def send_confirmation_email(to_email, subject, body):
         smtp_user = st.secrets["smtp"]["user"]
         smtp_pass = st.secrets["smtp"]["pass"]
 
-        message = MIMEMultipart()
-        message["From"] = smtp_user
-        message["To"] = to_email
-        message["Subject"] = subject
-        message.attach(MIMEText(body, "plain"))
+        msg = MIMEMultipart()
+        msg["From"] = smtp_user
+        msg["To"] = to_email
+        msg["Subject"] = subject
+        msg.attach(MIMEText(body, "plain"))
 
         server = smtplib.SMTP(smtp_host, smtp_port)
         server.starttls()
         server.login(smtp_user, smtp_pass)
-        server.sendmail(smtp_user, to_email, message.as_string())
+        server.sendmail(smtp_user, to_email, msg.as_string())
         server.quit()
 
         return {"success": True}
@@ -88,69 +89,50 @@ def send_confirmation_email(to_email, subject, body):
         return {"success": False, "error": str(e)}
 
 
-# ------------------------------------------------------------
-# LLM COMPLETION USING GROQ (Corrected)
-# ------------------------------------------------------------
-def llm_complete(prompt: str, max_tokens: int = 256, temperature: float = 0.1):
-    """
-    Calls Groq LLaMA 3.3 70B model to generate RAG answers.
-    """
-
-    # Get GROQ API key
+# ------------------------------
+# LLM Completion (Groq)
+# ------------------------------
+def llm_complete(prompt, max_tokens=256, temperature=0.2):
     try:
         api_key = st.secrets["groq"]["api_key"]
-    except Exception:
-        return "⚠ No GROQ API key found. Add it in .streamlit/secrets.toml."
+    except:
+        return "⚠ No Groq API key in secrets."
+
+    client = Groq(api_key=api_key)
 
     try:
-        client = Groq(api_key=api_key)
-
-        response = client.chat.completions.create(
+        res = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "user", "content": prompt}
-            ],
+            messages=[{"role": "user", "content": prompt}],
             max_tokens=max_tokens,
             temperature=temperature,
         )
 
-        # CORRECT extraction for Groq SDK
-        return response.choices[0].message.content.strip()
+        return res.choices[0].message["content"]
 
     except Exception as e:
-        return f"❌ LLM Error: {e}"
+        return f"LLM Error: {e}"
 
 
-# ------------------------------------------------------------
-# RAG FILE INGEST + TOOL WRAPPER
-# ------------------------------------------------------------
-from app.rag_pipeline import add_documents_from_uploaded_files, rag_answer
+# ------------------------------
+# RAG Tools
+# ------------------------------
+def rag_ingest_files(files):
+    return add_documents_from_uploaded_files(files)
 
-def rag_ingest_files(uploaded_files):
-    return add_documents_from_uploaded_files(uploaded_files)
+def rag_tool(query):
+    rag_res = rag_answer(query)
+    if not rag_res["success"]:
+        return {"success": False, "answer": rag_res["answer"]}
+
+    answer = llm_complete(rag_res["prompt"])
+    return {"success": True, "answer": answer, "sources": rag_res["sources"]}
 
 
-def rag_tool(query: str, top_k: int = 4):
-    """
-    High-level RAG tool that merges vector retrieval + LLM generation.
-    """
-    rag_res = rag_answer(query, top_k=top_k)
-
-    if not rag_res.get("success"):
-        return {"success": False, "answer": "No documents indexed."}
-
-    prompt = rag_res["prompt"]
-    sources = rag_res.get("sources", [])
-
-    answer = llm_complete(prompt)
-
-    return {"success": True, "answer": answer, "sources": sources}
-
-def web_search_tool_duckduckgo(query: str, max_results: int = 5):
-    """
-    Lightweight web search using DuckDuckGo Instant Answer API.
-    Returns a dict: {success, answer (string), sources (list of dicts)}
-    """
+# ------------------------------
+# Web Search Tool (DuckDuckGo)
+# ------------------------------
+def web_search_tool_duckduckgo(query, max_results=5):
     try:
         params = {
             "q": query,
@@ -161,67 +143,32 @@ def web_search_tool_duckduckgo(query: str, max_results: int = 5):
         resp = requests.get("https://api.duckduckgo.com/", params=params, timeout=8)
         data = resp.json()
     except Exception as e:
-        return {"success": False, "error": f"Search failed: {e}"}
+        return {"success": False, "error": str(e)}
 
-    # Prefer AbstractText if present
-    answer_parts = []
-    sources = []
+    answer = data.get("AbstractText")
+    if answer:
+        return {
+            "success": True,
+            "answer": answer,
+            "sources": [{"source": data.get("AbstractURL", ""), "text": answer}],
+        }
 
-    abstract = data.get("AbstractText") or ""
-    abstract_url = data.get("AbstractURL")
-    if abstract:
-        answer_parts.append(abstract)
-        if abstract_url:
-            sources.append({"source": abstract_url, "text": abstract})
+    return {"success": False, "error": "No useful results found."}
 
-    # RelatedTopics is often a list of topics with Text/FirstURL
-    related = data.get("RelatedTopics", []) or []
-    count = 0
-    for item in related:
-        if count >= max_results:
-            break
-        # items can be nested
-        text = item.get("Text") or item.get("Name")
-        url = item.get("FirstURL") or item.get("Result")
-        if text:
-            answer_parts.append(text)
-            if url:
-                sources.append({"source": url, "text": text})
-                count += 1
 
-    # If nothing useful, fallback to AbstractURL or just say no results
-    if not answer_parts:
-        return {"success": False, "error": "No concise results found."}
+# ------------------------------
+# TTS (gTTS)
+# ------------------------------
+def text_to_speech(text):
+    tts = gTTS(text)
+    tts.save("audio.mp3")
 
-    # Combine into short answer
-    answer = "\n\n".join(answer_parts[:6])
-    return {"success": True, "answer": answer, "sources": sources[:max_results]}
-
-# ------------------------------------------------------------
-# TEXT-TO-SPEECH (TTS) USING gTTS
-# ------------------------------------------------------------
-from gtts import gTTS
-import base64
-
-def text_to_speech(text: str):
+    audio_bytes = open("audio.mp3", "rb").read()
+    b64 = base64.b64encode(audio_bytes).decode()
+    return f"""
+        <audio controls>
+        <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+        </audio>
     """
-    Converts text to speech and returns HTML audio player.
-    Works on Streamlit Cloud.
-    """
-    try:
-        tts = gTTS(text)
-        tts.save("response_audio.mp3")
 
-        audio_file = open("response_audio.mp3", "rb").read()
-        b64 = base64.b64encode(audio_file).decode()
-
-        audio_html = f"""
-            <audio controls autoplay>
-                <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
-            </audio>
-        """
-        return audio_html
-
-    except Exception as e:
-        return f"Audio generation failed: {e}"
 
