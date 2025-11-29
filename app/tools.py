@@ -108,10 +108,12 @@ def llm_complete(prompt, max_tokens=256, temperature=0.2):
             temperature=temperature,
         )
 
-        return res.choices[0].message["content"]
+        # ✅ FIX: Correct way to access content
+        return res.choices[0].message.content
 
     except Exception as e:
         return f"LLM Error: {e}"
+
 
 
 # ------------------------------
