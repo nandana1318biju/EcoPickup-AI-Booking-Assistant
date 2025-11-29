@@ -1,110 +1,95 @@
 🌱 EcoPickup — AI Waste Pickup Booking Assistant
 
-An end-to-end AI-powered application for waste pickup scheduling, PDF-based Q&A using RAG,
-voice-enabled chatbot (TTS), email notifications, and a complete Admin Dashboard.
-
-
+An end-to-end AI-powered system for waste pickup scheduling, PDF-based RAG question answering, voice-enabled chatbot (TTS), automated email notifications, and a complete Admin Dashboard — all deployed using Streamlit Cloud.
 
 ⭐ Overview
 
-EcoPickup is an AI chatbot designed to make waste pickup services smart, fast, and automated.
-
+EcoPickup is an AI chatbot that makes waste pickup services smart, fast, and fully automated.
 
 Users can:
 
 Book organic, plastic, paper, glass, e-waste, mixed waste, or microplastic sample pickups
 
-Ask questions from uploaded PDFs using RAG
+Ask questions from their uploaded PDFs using RAG
 
-Receive voice-generated AI replies (TTS)
+Receive voice-generated replies (TTS)
 
-Receive email confirmations
+Get email confirmations
 
-View and modify bookings using an Admin Portal
+Manage bookings via a built-in Admin Dashboard
 
-This project demonstrates skills in:
+This project demonstrates:
 
 Conversational AI
 
 Retrieval Augmented Generation (RAG)
 
-Database design
+SQL database design
 
 Tool calling (DB, Email, RAG, Search)
 
-Streamlit front-end engineering
+Streamlit application engineering
 
 Deployment on Streamlit Cloud
-
-
 
 🔐 Admin Login Details
 
 To access the Admin Dashboard:
 
-Admin Password: admin123
+*Admin Password*: admin123
 
-
-These credentials are safe—admin panel is isolated and does not access any sensitive system.
-
-
+These credentials are safe — the admin panel only controls the local SQLite demo database.
 
 🚀 Features
 1️⃣ AI Chatbot (Groq LLaMA-3.1)
 
 Detects booking intent
 
-Collects user details conversationally
+Multi-turn conversational detail collection
 
-Uses short-term memory
+Short-term memory
 
-Validates email, date & time
+Validation for email, date, time, type
 
-Summarizes and confirms before saving
+Summarizes and asks for confirmation
 
-Prevents invalid inputs
+Stores only after explicit user approval
 
-Replies with optional voice output (gTTS)
+Optional voice output (TTS)
 
 2️⃣ Booking Flow
 
 The chatbot collects:
 
-Name
+Field	Description
+Name	Customer full name
+Email	Valid email address
+Phone	User phone number
+Pickup Type	organic / plastic / paper / etc.
+Preferred Date	YYYY-MM-DD
+Preferred Time	HH:MM
 
-Email
-
-Phone
-
-Pickup Type
-
-Preferred Date
-
-Preferred Time
-
-Then:
+After collecting details:
 
 ✔ Shows summary
 ✔ Asks for confirmation
-✔ Stores in database
-✔ Sends confirmation email
-✔ Produces voice output
+✔ Saves to database
+✔ Sends email confirmation
+✔ Outputs voice reply
 
 3️⃣ RAG — PDF Question Answering
 
-Upload any number of PDFs
+Upload multiple PDFs
 
-Extract text using pdfplumber
+Text extraction via pdfplumber
 
-Chunk + embed using Sentence Transformers
+Chunking + embedding with Sentence Transformers
 
-Store embeddings in FAISS
+Vector search using FAISS
 
-Retrieve relevant text
+RAG prompts with Groq LLaMA
 
-AI answers using LLaMA model + retrieved context
-
-Perfect for multi-document knowledge querying.
+Perfect for multi-document knowledge retrieval.
 
 4️⃣ Admin Dashboard
 
@@ -114,13 +99,13 @@ View all bookings
 
 Pagination
 
-Filter by name, date, email, type, status
+Filter by name, email, date, type, status
 
-Update booking status
+Update status
 
 Delete bookings
 
-Export filtered bookings to CSV
+Export bookings → CSV
 
 5️⃣ Email Confirmation
 
@@ -128,65 +113,70 @@ Sent via SMTP after booking.
 
 Includes:
 
-User’s name
+Name
 
 Booking ID
 
-Date & Time
-
 Pickup type
 
-EcoPickup website
+Date & Time
 
-Support instructions
+Support info
+
+EcoPickup branding
 
 6️⃣ Voice Support (TTS)
 
-Uses Google gTTS (free, no API key needed)
+Uses Google gTTS (free, no API key).
 
-Converts every chatbot reply into audio
+Converts chatbot responses into MP3
 
-Toggle available in sidebar
+Audio player shown in chat
+
+Can be toggled ON/OFF in sidebar
 
 7️⃣ Web Search Tool (Optional)
 
 Uses DuckDuckGo Instant API when:
 
-User asks something not found in RAG
+Info is not available in PDFs
 
-User explicitly requests general web information
+User explicitly asks for "web search" or general knowledge
 
 🧩 Tech Stack
 Component	Technology
 Frontend	Streamlit
 Backend	Python
-LLM	Groq LLaMA-3.1 via Groq API
+LLM	Groq LLaMA-3.1
 RAG	FAISS + Sentence Transformers
 Email	SMTP
 TTS	gTTS
 PDF Parsing	pdfplumber
 Database	SQLite (SQLAlchemy ORM)
-Search Tool	DuckDuckGo API
+Web Search	DuckDuckGo API
 📁 Project Structure
 ecopickup/
 │── app/
 │   ├── main.py              # Streamlit entry point
-│   ├── chat_logic.py        # Intent detection + conversational logic
+│   ├── chat_logic.py        # Intent detection + routing
 │   ├── booking_flow.py      # Slot filling + confirmation
 │   ├── rag_pipeline.py      # PDF ingestion + embeddings + FAISS
-│   ├── tools.py             # DB save, SMTP, RAG tool, TTS, Web search
-│   ├── admin_dashboard.py   # Admin management panel
+│   ├── tools.py             # DB save, email, RAG, TTS, search
+│   ├── admin_dashboard.py   # Admin portal
+│
 │── db/
-│   ├── database.py          # SQLite setup
-│   ├── models.py            # SQLAlchemy ORM
+│   ├── database.py          # SQLite initialization
+│   ├── models.py            # SQLAlchemy models
+│
 │── docs/                    # Sample PDFs + diagrams
-│── README.md                # Documentation
-│── requirements.txt         # Python dependencies
+│── requirements.txt
+│── README.md
+│
 │── .streamlit/
-│       └── secrets.toml     # (NOT included in repo — only on deployment)
+│       └── secrets.toml     # Not included — added only in deployment
 
 🔧 Installation Instructions
-1️⃣ Clone the Repository
+1️⃣ Clone Repository
 git clone https://github.com/nandana1318biju/EcoPickup-AI-Booking-Assistant.git
 cd EcoPickup-AI-Booking-Assistant
 
@@ -195,7 +185,7 @@ pip install -r requirements.txt
 
 3️⃣ Configure Secrets (Streamlit Cloud)
 
-In Streamlit Cloud → Secrets:
+Settings → Secrets → Paste:
 
 [grop]
 api_key = "YOUR_GROQ_KEY"
@@ -211,37 +201,41 @@ streamlit run app/main.py
 
 🌍 Deployment (Streamlit Cloud)
 
-Push project to GitHub
+Push code to GitHub
 
-Create new Streamlit Cloud app
+Create a new Streamlit Cloud app
 
 Add requirements.txt
 
 Add secrets under Settings → Secrets
 
-Deploy and verify public link works
+Deploy
+
+Share public URL
 
 🎯 Project Use Case
 
-EcoPickup modernizes waste collection by:
+EcoPickup modernizes the waste pickup process:
 
-Allowing users to schedule eco-friendly waste pickups
+Eco-friendly waste scheduling
 
-Answering sustainability and waste management questions
+Sustainability education via PDF Q&A
 
-Helping waste management companies automate bookings
+Automates operations for waste companies
 
-Providing admin tools to manage operations
+Admin dashboard for management
 
-It can be extended to:
+Can be extended into:
+
 ♻ Municipal waste management
 ♻ College hostel waste tracking
-♻ Company waste pickup automation
-♻ Laboratory microplastic sample collection
+♻ Company waste automation
+♻ Laboratory microplastic sampling
 
 👩‍💻 Author
 
 Nandana Biju
 MSc AI & ML – Christ University
 AI/ML Developer • Conversational AI • RAG Systems • NLP
+
 
