@@ -3,9 +3,12 @@
 An end-to-end AI-powered application for waste pickup scheduling, PDF-based Q&A using RAG,
 voice-enabled chatbot (TTS), email notifications, and a complete Admin Dashboard.
 
+
+
 ⭐ Overview
 
 EcoPickup is an AI chatbot designed to make waste pickup services smart, fast, and automated.
+
 
 Users can:
 
@@ -33,6 +36,8 @@ Streamlit front-end engineering
 
 Deployment on Streamlit Cloud
 
+
+
 🔐 Admin Login Details
 
 To access the Admin Dashboard:
@@ -41,6 +46,8 @@ Admin Password: admin123
 
 
 These credentials are safe—admin panel is isolated and does not access any sensitive system.
+
+
 
 🚀 Features
 1️⃣ AI Chatbot (Groq LLaMA-3.1)
@@ -237,3 +244,4 @@ It can be extended to:
 Nandana Biju
 MSc AI & ML – Christ University
 AI/ML Developer • Conversational AI • RAG Systems • NLP
+
