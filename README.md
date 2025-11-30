@@ -48,9 +48,9 @@ Admin Password: admin123
 
 ---
 
-## 🚀 Features
+##  Features
 
-### **1️⃣ AI Chatbot (Groq LLaMA-3.1)**
+### **1️. AI Chatbot (Groq LLaMA-3.1)**
 - Detects booking intent  
 - Conversationally collects user details  
 - Validates email, date, time  
@@ -61,7 +61,7 @@ Admin Password: admin123
 
 ---
 
-### **2️⃣ Booking Flow**
+### **2️. Booking Flow**
 
 The assistant collects:
 
@@ -82,7 +82,7 @@ Then:
 
 ---
 
-### **3️⃣ RAG — PDF Question Answering**
+### **3️. RAG — PDF Question Answering**
 
 - Upload multiple PDFs  
 - Extract text using **pdfplumber**  
@@ -99,7 +99,7 @@ Use cases:
 
 ---
 
-### **4️⃣ Admin Dashboard**
+### **4️. Admin Dashboard**
 
 Admin can:
 
@@ -112,7 +112,7 @@ Admin can:
 
 ---
 
-### **5️⃣ Email Confirmation**
+### **5️. Email Confirmation**
 
 Sent automatically after booking.
 
@@ -128,7 +128,7 @@ Uses SMTP with secure app passwords.
 
 ---
 
-### **6️⃣ Voice Support (TTS)**
+### **6️. Voice Support (TTS)**
 
 - Powered by **Google gTTS** (free)  
 - Converts all chatbot replies into audio  
@@ -136,7 +136,7 @@ Uses SMTP with secure app passwords.
 
 ---
 
-### **7️⃣ Optional Web Search Tool**
+### **7. Optional Web Search Tool**
 
 Uses **DuckDuckGo Instant Answer API** to answer general web queries.
 
@@ -254,5 +254,6 @@ EcoPickup can be used for:
 
 **Nandana Biju**  
 MSc Artificial Intelligence & Machine Learning — Christ University  
+
 
 
